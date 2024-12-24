@@ -129,16 +129,32 @@ function ncccutil(PortNative){
 
     function nccctypechar(nr){
         switch(nr){
-            case 0:
-                return "i";
-            case 1:
-                return "l";
-            case 2:
+            case 0: /* u32 */
+                return "I";
+            case 1: /* u64 */
+                return "L";
+            case 2: /* f32 */
                 return "f";
-            case 3:
+            case 3: /* f64 */
                 return "d";
-            case 6:
+            case 4: /* s32 */
+                return "i";
+            case 5: /* s64 */
+                return "l";
+            case 6: /* ptr */
                 return "p";
+            case 7: /* uptr */
+                return "X";
+            case 8: /* sptr */
+                return "x";
+            case 9: /* u8 */
+                return "B";
+            case 10: /* u16 */
+                return "H";
+            case 11: /* s8 */
+                return "b";
+            case 12: /* s16 */
+                return "h";
             default:
                 throw "Unknown";
         }
@@ -150,13 +166,11 @@ function ncccutil(PortNative){
 
     function opendll(path, modname){ // => {libs: {<lib>: {exports: ...}}}
         const dllfile = dlopen(path); 
-        const rootaddr = dlsym(dllfile, modname + "_nccc_root_00");
+        const rootaddr = dlsym(dllfile, "lib_" + modname + "_dispatch_ncccv0");
         console.log("Module",path,rootaddr);
         function collection_info(){
-            const out = do_rawcall(rootaddr, [0, 0, 1], 4);
             const r = {
-                max_libs: out[2],
-                max_version: out[3]
+                max_libs: 1
             };
             return r;
         }
@@ -172,9 +186,9 @@ function ncccutil(PortNative){
             };
             return r;
         }
-        function get_export(lib, exportid){
+        function get_export(__unused, exportid){
             // library_export_info
-            const out = do_rawcall(rootaddr, [1, lib, 2, exportid], 8);
+            const out = do_rawcall(rootaddr, [2, exportid], 8);
             if(out[0] != 0){
                 throw "Invalid res";
             }
@@ -188,7 +202,7 @@ function ncccutil(PortNative){
                 outcount: out[7]
             };
             // library_arg_info
-            const arga = do_rawcall(rootaddr, [1, lib, 6, info.objid],
+            const arga = do_rawcall(rootaddr, [6, info.objid],
                                     info.incount + info.outcount + 3);
             if(arga[0] != 0){
                 throw "Invalid res";
