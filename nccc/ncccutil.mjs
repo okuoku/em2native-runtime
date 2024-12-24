@@ -164,18 +164,19 @@ function ncccutil(PortNative){
         return types.reduce((acc, e) => acc + nccctypechar(e), "");
     }
 
-    function opendll(path, modname){ // => {libs: {<lib>: {exports: ...}}}
-        const dllfile = dlopen(path); 
-        const rootaddr = dlsym(dllfile, "lib_" + modname + "_dispatch_ncccv0");
-        console.log("Module",path,rootaddr);
-        function collection_info(){
-            const r = {
-                max_libs: 1
-            };
-            return r;
-        }
-        function library_info(lib){
-            const out = do_rawcall(rootaddr, [1, lib, 1], 6);
+    function opennccc(path){
+        const dllfile = dlopen(path);
+        return dllfile;
+    }
+
+    function resolvenccc(nccc, modname){
+        const rootaddr = dlsym(nccc, "lib_" + modname + "_dispatch_ncccv0");
+        return rootaddr;
+    }
+
+    function loadlib(rootaddr){ // => {exports: ...}
+        function library_info(){
+            const out = do_rawcall(rootaddr, [1], 6);
             const r = {
                 name0: fetchcstring(out[0]),
                 name1: out[1] == 0 ? false : fetchcstring(out[1]),
@@ -186,7 +187,7 @@ function ncccutil(PortNative){
             };
             return r;
         }
-        function get_export(__unused, exportid){
+        function get_export(exportid){
             // library_export_info
             const out = do_rawcall(rootaddr, [2, exportid], 8);
             if(out[0] != 0){
@@ -211,41 +212,21 @@ function ncccutil(PortNative){
             const outc = arga[2]; // Use return value
             const parama = nccctypes2string(arga.slice(3,3+inc));
             const resulta = nccctypes2string(arga.slice(3+inc,3+inc+outc));
-            console.log("Generating",modname,info.name,info.addr1,parama,resulta);
+            console.log("Generating",info.name,info.addr1,parama,resulta);
             info.proc = node_nccc.make_nccc_call(info.name, info.addr0, info.addr1,
                                                  parama, resulta);
             return info;
         }
 
-        const col = collection_info();
-        const lib = {libs: {}};
-        function setlib(l, exp){
-            if(l.name1){
-                if(! lib.libs[l.name0]){
-                    lib.libs[l.name0] = {};
-                }
-                if(! lib.libs[l.name0][l.name1]){
-                    lib.libs[l.name0][l.name1] = {};
-                }
-                lib.libs[l.name0][l.name1][exp.name] = exp;
-            }else{
-                if(! lib.libs[l.name0]){
-                    lib.libs[l.name0] = {};
-                }
-                lib.libs[l.name0][exp.name] = exp;
-            }
+        const lib = {exports: {}};
+        const libinfo = library_info();
+        console.log("Library", libinfo);
+        for(let expi = 0; expi != libinfo.max_exports; expi++){
+            const exp = get_export(expi);
+            console.log("Export", exp);
+            lib.exports[exp.name] = exp;
         }
-        let libi = 0;
-        for(libi = 0; libi != col.max_libs; libi++){
-            const libinfo = library_info(libi);
-            console.log("Library", libinfo);
-            let expi;
-            for(expi = 0; expi != libinfo.max_exports; expi++){
-                const exp = get_export(libi, expi);
-                console.log("Export", exp);
-                setlib(libinfo, exp);
-            }
-        }
+
         return lib;
     }
 
@@ -291,7 +272,9 @@ function ncccutil(PortNative){
 
 
     return {
-        opendll: opendll,
+        opennccc: opennccc,
+        resolvenccc: resolvenccc,
+        loadlib: loadlib,
         opendll_raw: opendll_raw,
         opendll_null: opendll_null,
         fetchcstring: fetchcstring,
