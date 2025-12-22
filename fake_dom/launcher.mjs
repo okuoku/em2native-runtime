@@ -5,7 +5,17 @@ import storage from "#runtime/fake_emscripten/storage.mjs";
 import EmuCanvas from "#runtime/canvas_emu/emucanvas.mjs";
 import WebAssembly_ist from "#runtime/webassembly_nccc/wasmproxy.mjs";
 
-function launch(config){
+const nav = {};
+const doc = {};
+const wnd = {};
+
+export {
+    wnd as fake_window,
+    doc as fake_document,
+    nav as fake_navigator
+}
+
+export function launcher(config){
 
     const BOOTPROTOCOL = config.BOOTPROTOCOL;
     const BOOTSTRAP = config.BOOTSTRAP;
@@ -23,9 +33,6 @@ function launch(config){
         return -1;
     }
 
-    const nav = {};
-    const doc = {};
-    const wnd = {};
 
     wnd.document = doc;
     wnd.navigator = nav;
@@ -531,6 +538,21 @@ function launch(config){
         receiver.apply(null, vals);
     }
 
+    function boot_dom(){ /* DOM-like module */
+
+        const binds = {
+            __dirname: "",
+            WebAssembly: WebAssembly,
+            window: global.my_window,
+            navigator: global.my_window.navigator,
+            document: global.my_doc,
+            setTimeout: global.fake_settimeout,
+            AudioContext: global.my_window.AudioContext,
+        };
+
+        /* Do nothing */
+    }
+
     function boot_plain(){ // Emscripten plain
         const bootstrap = bootstrap_script();
         my_module.wasmBinary = bootstrap_wasm();
@@ -748,6 +770,9 @@ function launch(config){
 
     function boot(){
         switch(BOOTPROTOCOL){
+            case "dom":
+                boot_dom();
+                break;
             case "unity":
                 boot_unity();
                 break;
@@ -768,5 +793,3 @@ function launch(config){
     boot();
 
 }
-
-export default launch;
