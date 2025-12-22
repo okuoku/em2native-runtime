@@ -1,10 +1,9 @@
-import "./regenerator.runtime.min.js";
 import PortStd from "./port-std.mjs";
-import GL from "./webgl-cwgl.mjs";
-import audioctx_mini from "./audioctx-mini.mjs";
-import storage from "./storage.mjs";
-import EmuCanvas from "./emucanvas.mjs";
-import WebAssembly_ist from "./wasmproxy.mjs";
+import GL from "#runtime/webgl_cwgl/webgl-cwgl.mjs";
+import audioctx_mini from "#runtime/webaudio_yfrm/audioctx-mini.mjs";
+import storage from "#runtime/fake_emscripten/storage.mjs";
+import EmuCanvas from "#runtime/canvas_emu/emucanvas.mjs";
+import WebAssembly_ist from "#runtime/webassembly_nccc/wasmproxy.mjs";
 
 function launch(config){
 

@@ -1,5 +1,5 @@
-import ncccutil from "./ncccutil.mjs";
-import nccc_node from "./nccc-node.mjs";
+import ncccutil from "#runtime/nccc/ncccutil.mjs";
+import nccc_node from "#runtime/nodejs/nccc-node.mjs";
 
 const corelib = ncccutil.corelib;
 

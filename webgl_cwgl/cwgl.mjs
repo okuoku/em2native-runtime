@@ -1,7 +1,8 @@
-import ncccutil from "./ncccutil.mjs";
+import ncccutil from "#runtime/nccc/ncccutil.mjs";
+import nativeresources from "#build/nativeresources.mjs";
 
-const cwgl0 = ncccutil.opendll_null("./yfrm.dll");
-const yfrmdll = ncccutil.opendll("./nccc_yfrm.dll", "yfrm"); /* Both yfrm and cwgl */
+//const cwgl0 = ncccutil.opendll_null("./yfrm.dll");
+const yfrmdll = ncccutil.opendll_raw(nativeresources.yfrm, "yfrm"); /* Both yfrm and cwgl */
 
 // Types
 const cwglCtx = null;

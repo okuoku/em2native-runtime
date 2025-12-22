@@ -1,4 +1,4 @@
-import fs from "./yfrmfs.mjs";
+import fs from "#runtime/fs_yfrm/yfrmfs.mjs";
 
 const ERRNO_CODES = {
     EPERM: 1,

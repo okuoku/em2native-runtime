@@ -1,5 +1,5 @@
-import ncccutil from "./ncccutil.mjs";
-import CWGL from "./cwgl.mjs";
+import ncccutil from "#runtime/nccc/ncccutil.mjs";
+import CWGL from "#runtime/webgl_cwgl/cwgl.mjs";
 
 export default {
     statSync: function(path){

@@ -1,7 +1,7 @@
 import CWGL from "./cwgl.mjs";
 import E from "./glenums.mjs";
 import getenumtype from "./getenumtype.mjs";
-import ncccutil from "./ncccutil.mjs";
+import ncccutil from "#runtime/nccc/ncccutil.mjs";
 
 const NULL = 0;
 
