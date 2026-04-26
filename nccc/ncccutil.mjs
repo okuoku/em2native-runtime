@@ -245,27 +245,20 @@ function opendll_null(path){ // => something
     return dllfile;
 }
 
-function gencb(the_cb){
+function wrapptr(addr, freecb){ // => ptr
     let myctx = null;
-    function freecb(arg0,ptr){
-        if(ptr === false){
-            myctx = arg0;
-        }else{
-            the_cb(ptr);
-            node_nccc.destroy_cb_ctx(myctx);
-        }
+    function do_dispose(){
+        freecb(addr);
+        node_nccc.destroy_cb_ctx(myctx);
     }
-    return freecb;
+    /* cba[0] = (intptr_t)nccc_cb_dispatcher
+     * cba[1] = (intptr_t)cb_params_t* */
+    const cba = node_nccc.make_nccc_cb(do_dispose, "", "");
+    myctx = cba[1];
+    return node_nccc.wrap_pointer(addr, cba[0], cba[1], 999);
 }
 
-function wrapptr(ptr, freecb){ // => ptr
-    const cb = gencb(freecb);
-    const cba = node_nccc.make_nccc_cb(cb, "pp", "");
-    cb(cba[1], false);
-    return node_nccc.wrap_pointer(ptr, cba[0], cba[1], 999);
-}
-
-// FIXME: 64bits version
+// FIXME: Is 64bits version. Prepare 32bits version later.
 function ptrbuf(){
     return new Uint32Array(2);
 }
