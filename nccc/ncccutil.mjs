@@ -216,7 +216,7 @@ function loadlib(rootaddr){ // => {exports: ...}
         const outc = arga[2]; // Use return value
         const parama = nccctypes2string(arga.slice(3,3+inc));
         const resulta = nccctypes2string(arga.slice(3+inc,3+inc+outc));
-        console.log("Generating",info.name,info.addr1,parama,resulta);
+        //console.log("Generating",info.name,info.addr1,parama,resulta);
         info.proc = node_nccc.make_nccc_call(info.name, info.addr0, info.addr1,
                                              parama, resulta);
         return info;
@@ -227,7 +227,7 @@ function loadlib(rootaddr){ // => {exports: ...}
     console.log("Library", libinfo);
     for(let expi = 0; expi != libinfo.max_exports; expi++){
         const exp = get_export(expi);
-        console.log("Export", exp);
+        //console.log("Export", exp);
         lib.exports[exp.name] = exp;
     }
 

@@ -1,7 +1,7 @@
-import CWGL from "./cwgl.mjs";
 import E from "./glenums.mjs";
 import getenumtype from "./getenumtype.mjs";
 import ncccutil from "#runtime/nccc/ncccutil.mjs";
+import CWGL from "./cwgl.mjs";
 
 const NULL = 0;
 
@@ -30,10 +30,7 @@ function freectx(ptr){
     console.log("Leak!", ptr);
 }
 
-function GL(w, h, attr){
-    const ctx0 = CWGL.yfrm_cwgl_ctx_create(w, h, 0, 0);
-    const evtbuf = new Int32Array(128);
-
+function GL(ctx0, w, h, attr){
     let currentFramebuffer = null;
     function trackbinding_Framebuffer(fb){
         currentFramebuffer = fb;
@@ -122,8 +119,10 @@ function GL(w, h, attr){
         }
     }
     const ctx = wrapPointer(ctx0, freectx);
+    // const evtbuf = new Int32Array(128);
     const R = {
         /* mgmt */
+        /* FIXME: Move these somewhere else
         cwgl_frame_begin: function(){
             CWGL.yfrm_frame_begin0(ctx);
         },
@@ -142,6 +141,7 @@ function GL(w, h, attr){
         yfrm_audio_pause0: function(){
             CWGL.yfrm_audio_pause0();
         },
+        */
 
         // 5.14.1 Attributes
         /// canvas (set by client)
@@ -1000,7 +1000,5 @@ function GL(w, h, attr){
 
     return R;
 }
-
-CWGL.yfrm_init();
 
 export default GL;
