@@ -30,35 +30,48 @@ function freectx(ptr){
     console.log("Leak!", ptr);
 }
 
+function consumestring(s){ // => string
+    // FIXME: On Duktape, Uint8Array freed during readcstr...?
+    const ssiz = CWGL.cwgl_string_size(ctx, s);
+    if(ssiz == 0){
+        return ""; // Short circuit
+    }
+    //const buf = new Uint8Array(ssiz+1);
+    const buf = ncccutil.malloc(ssiz+1);
+    CWGL.cwgl_string_read(ctx, s, buf, ssiz+1);
+    CWGL.cwgl_string_release(ctx, s);
+    //buf[ssiz] = 0;
+    //return readcstr(buf);
+    const r = ncccutil.fetchcstring(buf, ssiz);
+    ncccutil.free(buf);
+    return r;
+}
+
+function objptr(obj){
+    if(obj){
+        return obj.ptr
+    }else{
+        return NULL;
+    }
+}
+
 function GL(ctx0, w, h, attr){
+    /* Bindings */
     let currentFramebuffer = null;
+    let currentRenderbuffer = null;
+    let currentTexture2D = null;
+    let currentTextureCubeMap = null
+    let currentArrayBuffer = null;
+    let currentElementArrayBuffer = null;
+    let currentProgram = null;
+
+    /* trackbinding */
     function trackbinding_Framebuffer(fb){
         currentFramebuffer = fb;
     }
-    let currentRenderbuffer = null;
     function trackbinding_Renderbuffer(rb){
         currentRenderbuffer = rb;
     }
-
-    function consumestring(s){ // => string
-        // FIXME: On Duktape, Uint8Array freed during readcstr...?
-        const ssiz = CWGL.cwgl_string_size(ctx, s);
-        if(ssiz == 0){
-            return ""; // Short circuit
-        }
-        //const buf = new Uint8Array(ssiz+1);
-        const buf = ncccutil.malloc(ssiz+1);
-        CWGL.cwgl_string_read(ctx, s, buf, ssiz+1);
-        CWGL.cwgl_string_release(ctx, s);
-        //buf[ssiz] = 0;
-        //return readcstr(buf);
-        const r = ncccutil.fetchcstring(buf, ssiz);
-        ncccutil.free(buf);
-        return r;
-    }
-
-    let currentTexture2D = null;
-    let currentTextureCubeMap = null
     function trackbinding_texture(target, texture){
         switch(target){
             case E.TEXTURE_2D:
@@ -71,8 +84,6 @@ function GL(ctx0, w, h, attr){
                 throw "huh?";
         }
     }
-    let currentArrayBuffer = null;
-    let currentElementArrayBuffer = null;
     function trackbinding_buffer(target, buffer){
         switch(target){
             case E.ARRAY_BUFFER:
@@ -85,7 +96,6 @@ function GL(ctx0, w, h, attr){
                 throw "huh?";
         }
     }
-    let currentProgram = null;
     function trackbinding_program(program){
         currentProgram = program;
     }
@@ -111,38 +121,10 @@ function GL(ctx0, w, h, attr){
     function uniformlocationfree(ptr){
         CWGL.cwgl_UniformLocation_release(ctx, ptr);
     }
-    function objptr(obj){
-        if(obj){
-            return obj.ptr
-        }else{
-            return NULL;
-        }
-    }
+
     const ctx = wrapPointer(ctx0, freectx);
     // const evtbuf = new Int32Array(128);
     const R = {
-        /* mgmt */
-        /* FIXME: Move these somewhere else
-        cwgl_frame_begin: function(){
-            CWGL.yfrm_frame_begin0(ctx);
-        },
-        cwgl_frame_end: function(){
-            CWGL.yfrm_frame_end0(ctx);
-        },
-        yfrm_fill_events: function(){ // => length
-            let r = 0;
-            r = CWGL.yfrm_query0(0, evtbuf, 128);
-            return r;
-        },
-        yfrm_evtbuf: evtbuf,
-        yfrm_audio_enqueue0: function(ch0, ch1, samples){
-            CWGL.yfrm_audio_enqueue0(ch0, ch1, samples);
-        },
-        yfrm_audio_pause0: function(){
-            CWGL.yfrm_audio_pause0();
-        },
-        */
-
         // 5.14.1 Attributes
         /// canvas (set by client)
         drawingBufferWidth: w,
